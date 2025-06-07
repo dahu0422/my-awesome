@@ -75,6 +75,7 @@ export default defineConfig({
               { text: "useState", link: "/react/useState" },
               { text: "useReducer", link: "/react/useReducer" },
               { text: "useContext", link: "/react/useContext" },
+              { text: "useRef", link: "/react/useRef" },
             ],
           },
           { text: "fiber", link: "/react/fiber" },
