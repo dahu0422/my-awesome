@@ -31,6 +31,7 @@ export default defineConfig({
         items: [
           { text: "date-type", link: "/js/data-type" },
           { text: "var、let、const", link: "/js/var-let-const" },
+          { text: "shallow&deep-copy", link: "/js/shallow&deep-copy" },
           { text: "scope", link: "/js/scope" },
           { text: "prototype", link: "/js/prototype" },
           { text: "new", link: "/js/new" },
