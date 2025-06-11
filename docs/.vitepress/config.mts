@@ -40,7 +40,7 @@ export default defineConfig({
             text: "functional-programming",
             link: "/js/functional-programming",
           },
-          { text: "debounce-throttle", link: "/js/debounce-throttle" },
+          { text: "debounce、throttle", link: "/js/debounce-throttle" },
           { text: "promise", link: "/js/promise" },
           { text: "chained-promises", link: "/js/chained-promises" },
         ],
@@ -62,6 +62,7 @@ export default defineConfig({
             text: "cookie、storage、indexDB",
             link: "/browser/cookie、storage、indexDB",
           },
+          { text: "seo", link: "/browser/seo" },
         ],
       },
       {
@@ -131,8 +132,9 @@ export default defineConfig({
         text: "Next.js",
         items: [
           { text: "next", link: "/next/index.md" },
-          { text: "layout-pages", link: "/next/layout-pages" },
-          { text: "image", link: "/next/image" },
+          { text: "csr、ssr", link: "/next/csr、ssr" },
+          // { text: "layout-pages", link: "/next/layout-pages" },
+          // { text: "image", link: "/next/image" },
         ],
       },
       {
