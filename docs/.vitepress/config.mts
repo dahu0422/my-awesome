@@ -30,9 +30,11 @@ export default defineConfig({
         text: "JS",
         items: [
           { text: "date-type", link: "/js/data-type" },
+          { text: "object、map", link: "/js/object、map" },
+          { text: "for..in、for..of", link: "/js/for-in&of" },
           { text: "var、let、const", link: "/js/var-let-const" },
-          { text: "shallow&deep-copy", link: "/js/shallow&deep-copy" },
           { text: "scope", link: "/js/scope" },
+          { text: "shallow&deep-copy", link: "/js/shallow&deep-copy" },
           { text: "prototype", link: "/js/prototype" },
           { text: "new", link: "/js/new" },
           { text: "closure", link: "/js/closure" },
