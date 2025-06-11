@@ -1,13 +1,13 @@
 # CSR 与 SSR
 
-## 什么是客户端渲染（Client-Side Rendering, CSR）
+## 客户端渲染（Client-Side Rendering, CSR）
 
 客户端渲染是指浏览器首先加载一个基础的 HTML 页面，然后再加载 JavaScript 文件。页面内容的渲染依赖于 JavaScript 的执行，因此用户初次访问时可能会看到白屏或加载动画。
 
 **适用场景**：高度交互的单页应用（SPA）。  
 **典型代表**：React、Vue 等前端框架。
 
-## 什么是服务端渲染（Server-Side Rendering, SSR）
+## 服务端渲染（Server-Side Rendering, SSR）
 
 服务端渲染是指当用户请求页面时，服务器会先生成完整的 HTML 页面，并将其直接返回给浏览器。浏览器收到 HTML 后即可显示内容，随后 JavaScript 接管页面，实现交互功能。
 
