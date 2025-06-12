@@ -121,10 +121,8 @@ export default defineConfig({
             text: "performance optimization",
             link: "/enginner/performance-optimization",
             items: [
-              {
-                text: "Performance Index",
-                link: "/enginner/performance-index",
-              },
+              { text: "Performance Index", link: "/enginner/performance-index" },
+              { text: "Performance API", link: "/enginner/performance-api" },
               { text: "Dom Fragment", link: "/enginner/dom-fragment" },
             ],
           },
