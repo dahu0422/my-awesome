@@ -104,6 +104,7 @@ export default defineConfig({
             text: "webpack",
             link: "/enginner/webpack",
             items: [
+              { text: "config", link: "/enginner/webpack-config" },
               { text: "loader", link: "/enginner/webpack-loader" },
               {
                 text: "loader develop",
