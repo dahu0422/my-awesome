@@ -125,6 +125,7 @@ export default defineConfig({
               { text: "Performance Index", link: "/enginner/performance-index" },
               { text: "Performance API", link: "/enginner/performance-api" },
               { text: "Dom Fragment", link: "/enginner/dom-fragment" },
+              { text: "Virtual List", link: "/enginner/virtual-list" },
             ],
           },
         ],
