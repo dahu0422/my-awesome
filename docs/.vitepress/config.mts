@@ -38,10 +38,7 @@ export default defineConfig({
           { text: "prototype", link: "/js/prototype" },
           { text: "new", link: "/js/new" },
           { text: "closure", link: "/js/closure" },
-          {
-            text: "functional-programming",
-            link: "/js/functional-programming",
-          },
+          { text: "functional-programming", link: "/js/functional-programming" },
           { text: "debounce、throttle", link: "/js/debounce-throttle" },
           { text: "promise", link: "/js/promise" },
           { text: "chained-promises", link: "/js/chained-promises" },
