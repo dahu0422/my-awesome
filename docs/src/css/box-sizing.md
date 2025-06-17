@@ -43,5 +43,3 @@ padding 和 border 会在 content 区域内挤压
 ```
 
 box2 实际宽度 = 200px
-
-123
