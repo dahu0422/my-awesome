@@ -38,7 +38,10 @@ export default defineConfig({
           { text: "prototype", link: "/js/prototype" },
           { text: "new", link: "/js/new" },
           { text: "closure", link: "/js/closure" },
-          { text: "functional-programming", link: "/js/functional-programming" },
+          {
+            text: "functional-programming",
+            link: "/js/functional-programming",
+          },
           { text: "debounce、throttle", link: "/js/debounce-throttle" },
           { text: "promise", link: "/js/promise" },
           { text: "chained-promises", link: "/js/chained-promises" },
@@ -81,7 +84,15 @@ export default defineConfig({
               { text: "useLayoutEffect", link: "/react/useLayoutEffect" },
             ],
           },
-          { text: "fiber", link: "/react/fiber" },
+          {
+            text: "fiber",
+            items: [
+              {
+                text: "fiber-interruptible-rendering",
+                link: "/react/fiber-interruptible-rendering",
+              },
+            ],
+          },
         ],
       },
       {
@@ -119,7 +130,10 @@ export default defineConfig({
             text: "performance optimization",
             link: "/enginner/performance-optimization",
             items: [
-              { text: "Performance Index", link: "/enginner/performance-index" },
+              {
+                text: "Performance Index",
+                link: "/enginner/performance-index",
+              },
               { text: "Performance API", link: "/enginner/performance-api" },
               { text: "Dom Fragment", link: "/enginner/dom-fragment" },
               { text: "Virtual List", link: "/enginner/virtual-list" },
@@ -132,7 +146,10 @@ export default defineConfig({
         items: [
           { text: "next", link: "/next/index.md" },
           { text: "csr、ssr", link: "/next/csr、ssr" },
-          { text: "server & client components", link: "/next/server&client-components" },
+          {
+            text: "server & client components",
+            link: "/next/server&client-components",
+          },
           // { text: "layout-pages", link: "/next/layout-pages" },
           // { text: "image", link: "/next/image" },
         ],
