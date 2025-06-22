@@ -92,8 +92,8 @@ export default defineConfig({
                 text: "data structure & work loop",
                 link: "/react/fiber/data-structure-wook-loop",
               },
-              { text: "render phase", link: "render-pahse" },
-              { text: "commit phase", link: "commit-pahse" },
+              { text: "render phase", link: "/react/fiber/render-phase" },
+              { text: "commit phase", link: "/react/fiber/commit-phase" },
               {
                 text: "scheduler interruption & preemption",
                 link: "/react/fiber/scheduler-interruption-preemption",

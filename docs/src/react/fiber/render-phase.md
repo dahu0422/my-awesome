@@ -11,12 +11,6 @@ Render Phase 的核心目标非常纯粹：**找出虚拟 DOM 中的所有变更
 - **异步可中断**：这是 Fiber 架构的精髓。React 可以在执行过程中随时暂停 Render Phase，响应更高优先级的任务，稍后再回来继续。
 - **无副作用**：在整个 Render Phase 中，React 只会进行计算和内存中的操作（构建 `workInProgress` 树），**绝对不会去操作真实的 DOM**。这保证了即使过程被中断，用户也不会看到渲染不完整的 UI。
 
-:::tip 中断是如何发生的？
-在每处理完一个 Fiber 节点（一个工作单元）后，React 都会通过一个名为 `shouldYield()` 的函数进行检查。这个函数会判断当前时间片是否已经用完。
-
-后面文章再详细介绍
-:::
-
 ## `beginWork`：向下的"递"阶段
 
 `beginWork` 是工作循环 (Work Loop) 的第一步，它是一个"向下"递进的过程。从根节点开始，React 会为路径上的每一个 Fiber 节点执行 `beginWork` 函数。
