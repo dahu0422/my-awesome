@@ -87,11 +87,17 @@ export default defineConfig({
           {
             text: "fiber",
             items: [
+              { text: "origin", link: "/react/fiber/origin-of-fiber" },
               {
-                text: "interruptible-rendering",
-                link: "/react/fiber-interruptible-rendering",
+                text: "data structure & work loop",
+                link: "/react/fiber/data-structure-wook-loop",
               },
-              { text: "lanes", link: "/react/fiber-lanes" },
+              { text: "render phase", link: "render-pahse" },
+              { text: "commit phase", link: "commit-pahse" },
+              {
+                text: "scheduler interruption & preemption",
+                link: "/react/fiber/scheduler-interruption-preemption",
+              },
             ],
           },
         ],

@@ -56,108 +56,140 @@ export const IdleLane: Lane = /* ... */ 0b0100000000000000000000000000000
 
 ## Lanes 如何工作？
 
-### 1. 分配 Lane (Assigning a Lane)
+简单来说，Lanes 的工作流程可以分为三步：
 
-React 之所以能知道更新的“来源”，是因为它在执行你的代码前，会先设置一个“执行上下文”（`executionContext`）。
+1.  **分配 Lane**: 当一个更新（如 `setState`）发生时，React 会根据上下文为其分配一个特定的 Lane。
+2.  **选择 Lane**: React 的调度器会从所有待处理的 Lanes 中，挑选出优先级最高的那个。
+3.  **处理任务**: React 开始渲染工作，但只处理与所选 Lane 相关的更新。如果在渲染期间有更高优先级的任务进来，当前渲染会被中断。
 
-例如，在处理像 `click` 这样的离散事件时，React 会先设置一个高优先级的上下文：
+下面我们来详细拆解这个过程。
+
+### 1. 分配 Lane：为每个更新打上"优先级标签"
+
+当你在组件中调用 `setState` 时，并不是直接开始更新。React 会先调用 `requestUpdateLane` 函数来确定这次更新的优先级。
 
 ```javascript
-// packages/react-dom/src/events/ReactDOMEventListener.js (简化后)
-function dispatchDiscreteEvent(domEventName, eventSystemFlags, container, nativeEvent) {
-  const previousExecutionContext = executionContext;
-  // 设置一个高优先级的上下文
-  executionContext |= DiscreteEventContext;
-  try {
-    // 在这个上下文中，执行你的事件回调
-    batchedEventUpdates(dispatchEvent, ...);
-  } finally {
-    // 恢复上下文
-    executionContext = previousExecutionContext;
+// packages/react-reconciler/src/ReactFiberWorkLoop.js
+
+export function requestUpdateLane(fiber: Fiber): Lane {
+  // 1. 检查是否处于并发模式
+  const mode = fiber.mode
+  if ((mode & ConcurrentMode) === NoMode) {
+    return (SyncLane: Lane)
+  }
+
+  // 2. 检查是否在 startTransition 内部
+  const isTransition = isTransitionRunning()
+  if (isTransition) {
+    // Transition 更新有自己的 Lane
+    return getCurrentTransition()?.lane ?? DefaultLane
+  }
+
+  // 3. 根据 Scheduler 的事件优先级决定 Lane
+  const schedulerPriority = getCurrentSchedulerPriorityLevel()
+  switch (schedulerPriority) {
+    case ImmediatePriority: // e.g. discrete user interactions like `click`
+      return SyncLane
+    case UserBlockingPriority: // e.g. continuous interactions like `drag`
+      return InputContinuousLane
+    case NormalPriority:
+    case LowPriority: // e.g. `useEffect`
+      return DefaultLane
+    case IdlePriority:
+      return IdleLane
+    default:
+      return DefaultLane
   }
 }
 ```
 
-当你的 `setState` 在这个上下文中被调用时，React 内部的 `requestUpdateLane` 函数就会检查到 `DiscreteEventContext`，并返回一个高优先级的 `SyncLane`。同理，`startTransition` 也会设置一个 `Transition` 上下文，从而分配 `TransitionLane`。
+如源码所示，`requestUpdateLane` 会根据调用时的上下文，依次检查：
 
-### 2. 选择渲染的 Lanes (Selecting Render Lanes)
+1.  **是否处于旧的同步模式 (Legacy Sync Mode)？** 如果是，直接返回最高优的 `SyncLane`，确保同步行为。
+2.  **是否在 `startTransition` 内部？** 如果是，则返回一个 `TransitionLane`，标记为低优先级更新。
+3.  **当前的事件优先级是什么？** React 的事件系统（如 `onClick`, `onInput`）在触发回调前，会设置一个相应的优先级。`requestUpdateLane` 会将这个优先级映射到对应的 Lane，例如：
+    - **离散事件** (如 `click`) → `SyncLane`
+    - **连续事件** (如 `drag`) → `InputContinuousLane`
+    - **其他情况** (如 `useEffect` 中的更新) → `DefaultLane`
 
-在每次准备启动或恢复渲染工作时，React 会调用 `getNextLanes` 函数来决定本次要处理的优先级批次。
+拿到 Lane 之后，React 会通过 `scheduleUpdateOnFiber` 函数启动更新调度。在这个过程中，最关键的一步是调用 `markRootUpdated`，将新的 Lane 添加到 Fiber 树根节点的 `pendingLanes` 字段上。
 
 ```javascript
-// packages/react-reconciler/src/ReactFiberWorkLoop.js (简化后)
-function performConcurrentWorkOnRoot(root) {
-  // ...
-  // 1. 从根节点的所有待处理更新中，计算出本次要渲染的 Lanes
-  const lanes = getNextLanes(root, NoLanes)
+// packages/react-reconciler/src/ReactFiberWorkLoop.js
 
-  if (lanes === NoLanes) {
-    // 没有工作可做
-    return
-  }
-
-  // 2. 将计算出的 lanes 作为 renderLanes 传入，并开始渲染
-  renderRootConcurrent(root, lanes)
+function scheduleUpdateOnFiber(fiber, lane) {
   // ...
+  const root = markUpdateLaneFromFiberToRoot(fiber, lane)
+  markRootUpdated(root, lane)
+  // ...
+}
+
+function markRootUpdated(root, updateLane) {
+  // 使用位或运算，将新的 lane 添加到待处理集合中
+  root.pendingLanes |= updateLane
 }
 ```
 
-`getNextLanes` 的核心逻辑是 `pendingLanes & -pendingLanes`，这是一个位运算技巧，用于获取所有待处理（`pendingLanes`）任务中，优先级最高的那一个（即最右边的二进制位 `1`）。这样就确保了最紧急的任务总是被最先选中。
+`pendingLanes` 就像一个任务清单，记录了所有等待处理的更新。一旦 Lane 被记录在此，调度器就知道有新的工作需要执行。
 
-### 3. 按优先级处理 (Processing Updates by Priority)
+### 2. 选择 Lane：从"泳池"中挑选最紧急的赛道
 
-在 `workLoop` 循环中，当 React 处理一个组件的状态更新时，它会遍历该组件的更新队列。`processUpdateQueue` 函数会用当前的 `renderLanes` 来“过滤”这些更新。
+当 React 准备开始一轮新的渲染时，它会查看根节点上的 `pendingLanes`——这是一个包含了所有待处理任务优先级的位掩码。
+
+调度器会调用 `getNextLanes` 函数，该函数的核心逻辑是：**"从 `pendingLanes` 中，找出最靠右侧（数值最小，但优先级最高）的那个 '1' 所代表的 Lane。"**
 
 ```javascript
-// packages/react-reconciler/src/ReactUpdateQueue.js (简化后)
-function processUpdateQueue(workInProgress, props, instance, renderLanes) {
-  const queue = workInProgress.updateQueue
-  // ...
-  let firstUpdate = queue.shared.pending
-  if (firstUpdate !== null) {
-    let update = firstUpdate
-    do {
-      const updateLane = update.lane
-
-      // 检查当前更新的优先级，是否包含在本次渲染的批次中
-      if (!isSubsetOfLanes(updateLane, renderLanes)) {
-        // 优先级不够，跳过这个更新
-        // ...
-      } else {
-        // 优先级足够，处理这个更新，计算新 state
-        // ...
-      }
-      update = update.next
-    } while (update !== null)
+// packages/react-reconciler/src/ReactFiberLane.js
+export function getNextLanes(root: FiberRoot, wipLanes: Lanes): Lanes {
+  const pendingLanes = root.pendingLanes
+  if (pendingLanes === NoLanes) {
+    return NoLanes
   }
-  // ...
+
+  // ... 其他复杂逻辑，如饥饿处理 ...
+
+  // 核心：获取优先级最高的 Lane
+  return getHighestPriorityLanes(pendingLanes)
+}
+
+function getHighestPriorityLanes(lanes: Lanes): Lanes {
+  // 这个位运算技巧可以隔离出二进制数中最右边的 '1'
+  return lanes & -lanes
 }
 ```
 
-`isSubsetOfLanes(updateLane, renderLanes)` 同样是一个位运算 `(updateLane & renderLanes) === updateLane`。如果一个更新的 `lane` 不在 `renderLanes` 这个批次里，它就会被跳过，并保留在队列中，等待它自己的优先级被选中时再处理。
+`lanes & -lanes` 这个操作看起来很神奇，但它其实是利用了计算机补码的表示方式，能够精准且高效地找出最小的（也就是优先级最高的）Lane。
 
----
+例如，如果 `pendingLanes` 是 `0b0010100` (DefaultLane 和 InputContinuousLane)，`getHighestPriorityLanes` 会返回 `0b100` (`InputContinuousLane`)，因为它是最右边的 "1"。
 
-## 优先级抢占 (Interruption)
+这个被选中的 Lane 或 Lanes 集合，会成为本次渲染的 `renderLanes`。
 
-Lanes 模型最强大的地方在于它实现了**优先级抢占**。
+### 3. 执行与中断：专注高优任务，兼顾其他
 
-设想一个场景：React 正在进行一个低优先级的渲染（比如一个 `TransitionLane` 的更新）。
+在渲染阶段（Render Phase），React 会从 Fiber 树的根节点开始遍历。对于每个 Fiber 节点，它会检查：
 
-> 突然，用户点击了一个按钮！
+```
+// 伪代码
+if ((fiber.lanes & renderLanes) !== 0) {
+  // 此 Fiber 节点有与当前渲染优先级匹配的更新
+  // 需要处理它...
+  processFiber(fiber);
+} else {
+  // 没有匹配的更新，可以尝试快速跳过
+  skipFiber(fiber);
+}
+```
 
-1.  一个高优先级的 `SyncLane` 更新被创建，并被添加到组件的 `pendingLanes` 中。
-2.  React 会立刻调度一个新的渲染任务。在选择 `renderLanes` 时，它发现 `SyncLane` 的优先级远高于正在进行的 `TransitionLane`。
-3.  这时，React 会**丢弃当前的低优先级渲染进度**。
-4.  它会发起一次全新的渲染，这次的 `renderLanes` 会是高优先级的 `SyncLane`。
-5.  这个新的 `workLoop` 会极速完成，只处理与用户点击相关的状态变更，从而保证了界面的即时响应。
+通过位运算 `&`，React 可以极快地判断一个节点是否需要在此次渲染中被处理。
 
-当高优先级任务完成后，React 会再次检查是否还有待处理的低优先级任务，并在浏览器空闲时继续完成它们。
+最关键的一点是，在处理每个 Fiber 单元后，React 都会检查是否有更高优先级的更新插入。如果 `pendingLanes` 中出现了一个比当前 `renderLanes` 更高的优先级，React 会：
 
-通过这种方式，React 确保了高优先级的任务（如用户交互）能够"插队"，中断正在进行的低优先级任务，从而避免了界面卡顿。
+1.  **抛弃** 当前的渲染进度。
+2.  **回到** 第二步，重新选择最高优先级的 Lane。
+3.  **开始** 新一轮的渲染。
 
----
+通过这种"**检查 -> 抛弃 -> 重启**"的循环，Lanes 模型赋予了 React 精确控制任务抢占的能力。它不再仅仅是被动地等待时间片用完，而是能够主动废弃低优先级的渲染，确保最高优先级的任务（如用户输入）能第一时间获得执行权，从而在根本上保证了应用的响应性。
 
-## 总结
+### 4. Lanes 的冒泡：让父节点感知子树状态
 
-Lanes 模型是 Fiber 架构下实现精细化任务调度的关键。它通过位掩码为不同更新分配优先级，并允许高优先级任务抢占低优先级任务，从而在保证界面响应性的同时，高效地完成各种渲染工作。
+在渲染过程中，React 会从根节点开始遍历，并将渲染结果传递给父节点。如果子节点有更高优先级的更新，父节点会将其 Lane 添加到自己的 `pendingLanes` 中，从而让父节点感知子树状态的变化。
