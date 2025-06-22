@@ -88,9 +88,10 @@ export default defineConfig({
             text: "fiber",
             items: [
               {
-                text: "fiber-interruptible-rendering",
+                text: "interruptible-rendering",
                 link: "/react/fiber-interruptible-rendering",
               },
+              { text: "lanes", link: "/react/fiber-lanes" },
             ],
           },
         ],
