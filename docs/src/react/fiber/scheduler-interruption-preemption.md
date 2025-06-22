@@ -10,39 +10,41 @@
 
 ## 时间分片 (Time Slicing) 与中断机制
 
-时间分片的目标，是确保 React 的工作不会长时间霸占主线程，从而让浏览器有机会处理用户输入或渲染动画。
+时间分片是实现并发更新的核心机制。它的目标，是确保 React 的更新过程不会长时间霸占主线程，从而让浏览器有机会处理用户输入或渲染动画等更高优先级的任务。
 
-React 的工作循环 (Work Loop) 在每处理完一个 Fiber 节点后，并不会立即开始下一个，而是会通过一个名为 `shouldYield` 的函数来"看一眼"时间。
+这个机制的实现，是**协调器 (Reconciler)** 和 **调度器 (Scheduler)** 紧密协作的结果：
 
-`shouldYield` 的逻辑非常简单：**检查当前时间是否已经超过了预设的截止时间 (deadline)**。这个截止时间通常是当前帧的剩余时间。
+- **协调器 (Reconciler)**: 拥有一个名为 `workLoop` 的工作循环，负责处理 Fiber 节点。
+- **调度器 (Scheduler)**: 提供一个名为 `shouldYield` 的函数，用于判断当前时间片是否耗尽。
+
+在 `workLoop` 的每一轮循环中，`Reconciler` 在处理完一个 Fiber 节点后，都会调用 `shouldYield` 来"看一眼"时间：
 
 ```javascript
-// Scheduler 中的一个关键变量，标记当前时间片是否已经用完
-let didYield = false
+// 伪代码，融合了 Reconciler 和 Scheduler 的核心逻辑
 
-// 这是一个并发模式下的工作循环
-function workLoopConcurrent() {
-  while (workInProgress !== null && !didYield) {
-    performUnitOfWork(workInProgress)
+// --- Reconciler 内部 ---
+let workInProgress = null // 当前正在处理的 Fiber 节点
+
+function workLoop() {
+  // 只要还有工作，并且调度器告知我们无需中断，就继续
+  while (workInProgress !== null && !shouldYield()) {
+    // performUnitOfWork 会处理当前的 Fiber 节点，
+    // 并返回下一个要处理的节点（子节点或兄弟节点）。
+    workInProgress = performUnitOfWork(workInProgress)
   }
 }
 
-// 在每个工作单元结束后，检查是否需要中断
-function performUnitOfWork(unitOfWork) {
-  // ... 执行 beginWork 或 completeWork ...
-
-  // 检查时间片
-  if (shouldYield()) {
-    // 内部实现：Date.now() > deadline
-    didYield = true // 设置中断标记
-  }
+// --- Scheduler 提供的能力 ---
+function shouldYield() {
+  // 它的逻辑是检查当前时间是否已经超过了预设的截止时间 (deadline)。
+  // 背后是基于 MessageChannel 实现的宏任务调度，比 requestIdleCallback 更可靠。
+  return Date.now() > deadline
 }
-
-// shouldYield 背后是 Scheduler 使用 MessageChannel 实现的宏任务调度，
-// 它比 requestIdleCallback 更可靠、更灵活。
 ```
 
-当 `shouldYield` 返回 `true` 时，工作循环就会停止。React 会安排一个新的宏任务，在下一次事件循环中继续执行。这就实现了将一个长任务切分成多个小任务，即**时间分片**。
+当 `shouldYield` 返回 `true` 时，意味着当前帧的剩余时间已经不足，`workLoop` 就会停止。Reconciler 会保存当前的工作进度，并由 Scheduler 安排一个新的宏任务，在下一次事件循环中继续执行。
+
+通过这种"做一点，歇一下"的模式，一个漫长的更新任务就被切分成了多个不连续的小任务，实现了**时间分片**。
 
 ## 优先级的概念与 Lanes 模型
 
