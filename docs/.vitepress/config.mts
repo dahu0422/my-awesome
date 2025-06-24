@@ -22,7 +22,7 @@ export default defineConfig({
         items: [
           { text: "box-sizing", link: "/css/box-sizing" },
           { text: "css selector", link: "/css/selector" },
-          { text: "css specificity", link: "/css/specificity" },
+          { text: "css cascade", link: "/css/cascade" },
           { text: "responsive layout", link: "/css/responsive-layout" },
         ],
       },
