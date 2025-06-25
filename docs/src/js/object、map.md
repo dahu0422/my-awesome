@@ -43,18 +43,19 @@ for (const [key, val] of map) {
 
 ## 性能：Map 优于 Object（在大量操作时）
 
-当涉及大量键值对的增删查改操作时，`Map` 在绝大多数 JS 引擎中的表现都优于 `Object`。这是因为 `Map` 是专为这种用途优化的数据结构，底层通常使用哈希表实现。
+### 插入、查找、删除性能对比
 
-此外，`Map` 的 `.size` 属性可以**立即获取键值对数量**，而 `Object` 需要 `Object.keys(obj).length` 这种额外操作。
+- **Map**：底层为哈希表，专为频繁的增删查操作优化，插入、查找、删除的性能都非常高，且不会受到原型链影响。
+- **Object**：同样基于哈希表，但属性查找和删除会受到原型链、属性特性等影响，尤其是 `delete` 操作会导致性能下降。
 
-```js
-const map = new Map()
-map.set("a", 1)
-console.log(map.size) // 1
+### 遍历性能
 
-const obj = { a: 1 }
-console.log(Object.keys(obj).length) // 1
-```
+- **Map**：遍历顺序就是插入顺序，且遍历速度快（如 `for...of map`、`map.forEach`）。
+- **Object**：遍历顺序不保证，需用 `Object.keys/values/entries`，性能略逊。
+
+在现代 JavaScript 引擎中，Map 在插入、查找、删除和遍历大量数据时，性能通常优于 Object，尤其是当键不是字符串时。Object 适合用作结构化数据存储，而 Map 更适合用作高性能的键值对集合。
+
+底层实现上，Map 专为哈希表优化，Object 还涉及原型链和属性特性。因此，推荐在需要频繁操作或键类型多样时使用 Map。
 
 ## 原型污染问题：Map 更安全
 
