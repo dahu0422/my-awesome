@@ -74,3 +74,11 @@ console.log(p1.__proto__.__proto__.__proto__); // null
 2. 没有则查找其 `__proto__`（即构造函数的 `prototype`）
 3. 再往上查找 `Object.protytype`
 4. 找不到则返回 `undefined`
+
+:::tip 判断属性是在原型链上还是实例上的？
+
+1. `hasOwnProperty()`：判断某个属性是否为对象自身“直接拥有”的属性（即不是原型链上的属性）。
+2. `in` 操作符：判断某个属性是否存在于对象中（包括自身属性和原型链上的属性）。
+
+如果 `obj.hasOwnProperty('prop')` 为 `false`，但 `'prop' in obj` 为 `true`，说明属性在原型链上。
+:::
