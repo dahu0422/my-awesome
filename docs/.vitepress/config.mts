@@ -37,6 +37,7 @@ export default defineConfig({
           { text: "shallow&deep-copy", link: "/js/shallow&deep-copy" },
           { text: "prototype", link: "/js/prototype" },
           { text: "new", link: "/js/new" },
+          { text: "extend", link: "js/extend" },
           { text: "closure", link: "/js/closure" },
           {
             text: "functional-programming",
