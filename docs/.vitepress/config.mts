@@ -150,6 +150,11 @@ export default defineConfig({
         ],
       },
       {
+        text: "TypeScript",
+        link: "/ts/index",
+        items: [{ text: "data-type", link: "/ts/data-type" }],
+      },
+      {
         text: "Next.js",
         items: [
           { text: "next", link: "/next/index.md" },
