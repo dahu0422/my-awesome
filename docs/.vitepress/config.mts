@@ -152,7 +152,10 @@ export default defineConfig({
       {
         text: "TypeScript",
         link: "/ts/index",
-        items: [{ text: "data-type", link: "/ts/data-type" }],
+        items: [
+          { text: "array", link: "/ts/array-tuple" },
+          { text: "object", link: "/ts/object" },
+        ],
       },
       {
         text: "Next.js",
