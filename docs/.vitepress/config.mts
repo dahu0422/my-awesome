@@ -153,8 +153,10 @@ export default defineConfig({
         text: "TypeScript",
         link: "/ts/index",
         items: [
-          { text: "array", link: "/ts/array-tuple" },
+          { text: "Array Type & Tuple Type", link: "/ts/array-tuple" },
           { text: "object", link: "/ts/object" },
+          { text: "Literal Types & Enmus", link: "/ts/literal-types&enmus" },
+          { text: "Function Type", link: "/ts/function-type" },
         ],
       },
       {
