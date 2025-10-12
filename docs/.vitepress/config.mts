@@ -112,39 +112,43 @@ export default defineConfig({
         ],
       },
       {
-        text: "Frontend Engineer",
+        text: "Frontend Engineering",
         items: [
-          { text: "git", link: "/enginner/git" },
-          { text: "module", link: "/enginner/module" },
+          { text: "git", link: "/engineering/git" },
+          { text: "module", link: "/engineering/module" },
+          {
+            text: "npx vs direct commands",
+            link: "/engineering/npx-vs-direct-commands",
+          },
           {
             text: "webpack",
-            link: "/enginner/webpack",
+            link: "/engineering/webpack",
             items: [
-              { text: "config", link: "/enginner/webpack-config" },
-              { text: "loader", link: "/enginner/webpack-loader" },
+              { text: "config", link: "/engineering/webpack-config" },
+              { text: "loader", link: "/engineering/webpack-loader" },
               {
                 text: "loader develop",
-                link: "/enginner/webpack-loader-develop",
+                link: "/engineering/webpack-loader-develop",
               },
               {
                 text: "splitChunks",
-                link: "/enginner/webpack-splitChunks",
+                link: "/engineering/webpack-splitChunks",
               },
-              { text: "terser", link: "/enginner/webpack-terser" },
-              { text: "hmr", link: "/enginner/webpack-HMR" },
+              { text: "terser", link: "/engineering/webpack-terser" },
+              { text: "hmr", link: "/engineering/webpack-HMR" },
             ],
           },
           {
             text: "performance optimization",
-            link: "/enginner/performance-optimization",
+            link: "/engineering/performance-optimization",
             items: [
               {
                 text: "Performance Index",
-                link: "/enginner/performance-index",
+                link: "/engineering/performance-index",
               },
-              { text: "Performance API", link: "/enginner/performance-api" },
-              { text: "Dom Fragment", link: "/enginner/dom-fragment" },
-              { text: "Virtual List", link: "/enginner/virtual-list" },
+              { text: "Performance API", link: "/engineering/performance-api" },
+              { text: "Dom Fragment", link: "/engineering/dom-fragment" },
+              { text: "Virtual List", link: "/engineering/virtual-list" },
             ],
           },
         ],
