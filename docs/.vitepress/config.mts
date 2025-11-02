@@ -161,6 +161,7 @@ export default defineConfig({
           { text: "object", link: "/ts/object" },
           { text: "Literal Types & Enmus", link: "/ts/literal-types&enmus" },
           { text: "Function Type", link: "/ts/function-type" },
+          { text: "类型层级", link: "/ts/type-hierarchy" },
         ],
       },
       {
