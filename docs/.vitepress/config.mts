@@ -162,21 +162,22 @@ export default defineConfig({
           { text: "Literal Types & Enmus", link: "/ts/literal-types&enmus" },
           { text: "Function Type", link: "/ts/function-type" },
           { text: "类型层级", link: "/ts/type-hierarchy" },
+          { text: "declare", link: "/ts/declare" },
         ],
       },
-      {
-        text: "Next.js",
-        items: [
-          { text: "next", link: "/next/index.md" },
-          { text: "csr、ssr", link: "/next/csr、ssr" },
-          {
-            text: "server & client components",
-            link: "/next/server&client-components",
-          },
-          // { text: "layout-pages", link: "/next/layout-pages" },
-          // { text: "image", link: "/next/image" },
-        ],
-      },
+      // {
+      //   text: "Next.js",
+      //   items: [
+      //     { text: "next", link: "/next/index.md" },
+      //     { text: "csr、ssr", link: "/next/csr、ssr" },
+      //     {
+      //       text: "server & client components",
+      //       link: "/next/server&client-components",
+      //     },
+      //     // { text: "layout-pages", link: "/next/layout-pages" },
+      //     // { text: "image", link: "/next/image" },
+      //   ],
+      // },
       {
         text: "Network",
         items: [
