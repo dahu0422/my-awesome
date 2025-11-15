@@ -163,6 +163,7 @@ export default defineConfig({
           // { text: "Literal Types & Enmus", link: "/ts/literal-types&enmus" },
           // { text: "Function Type", link: "/ts/function-type" },
           { text: "type alias 类型别名", link: "/ts/type-alias" },
+          { text: "generics 泛型", link: "/ts/generics" },
           { text: "类型层级", link: "/ts/type-hierarchy" },
           { text: "declare", link: "/ts/declare" },
         ],
