@@ -12,6 +12,7 @@ export default defineConfig({
     ],
 
     sidebar: [
+      { text: "Electron", link: "/electron" },
       {
         text: "HTML",
         link: "/html",
