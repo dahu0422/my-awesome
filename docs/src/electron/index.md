@@ -1,13 +1,13 @@
 # Electron 笔记
 
-创建 Electron 项目，并编写一个简单的入门教程。
+创建 Electron 项目，并记录一个简单的入门示例。
 
 ## Hello Electron
 
 1. 初始化项目；
 2. 在 package.json 的 `script` 字段中添加 `start` 命令；
-3. 创建 main.js：main.js 是文件是 Electron 应用的入口，控制主进程，运行在 Node.js 环境中。负责控制应用的生命周期、显示原声界面、执行特殊操作并管理渲染进程。
-4. 将网页挂载到 `BrowserWindow`：在 Electron 中每个窗口展示一个页面，创建 index.html，并加载到 Electron 的 `BrowserWindow`。
+3. 创建 main.js：main.js 是文件是 Electron 应用的入口，控制主进程，运行在 Node.js 环境中。
+4. 将网页挂载到 `BrowserWindow`：在 Electron 中每个窗口展示一个页面，创建 index.html。在应用准备就绪时将页面加载到 `BrowserWindow` 实例中。
 
 :::code-group
 

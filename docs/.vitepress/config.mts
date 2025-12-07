@@ -12,7 +12,14 @@ export default defineConfig({
     ],
 
     sidebar: [
-      { text: "Electron", link: "/electron" },
+      {
+        text: "Electron",
+        link: "/electron",
+        items: [
+          { text: "process model", link: "/electron/process-model" },
+          { text: "vscode-extension", link: "/electron/vscode-extension" },
+        ],
+      },
       {
         text: "HTML",
         link: "/html",
