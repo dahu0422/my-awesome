@@ -193,7 +193,7 @@ context.subscriptions.push(upperTextDisposable)
 
 ![uppertext-menu](./images/uppertext-menu.png)
 
-## webview 面板
+## Webview 面板
 
 嵌入自定义 HTML/CSS/JS 页面
 
@@ -256,3 +256,144 @@ function getWebviewContent() {
 :::
 
 ![openwebview-run](./images/openwebview-run.png)
+
+## Webview 与扩展主进程双向通信
+
+Webview 运行在独立的上下文环境中，与扩展进程（Node.js环境）无法直接共享数据，需要通过 `postMessage/onDidReceiveMessage` 实现双向通信，核心是基于 JSON 格式的消息传递。
+
+- 扩展主进程 -> Webview：扩展主进程通过 `webviewPanel.webview.postMessage()` 向 Webview 发送数据；
+- Webview -> Webview 中通过 `acquireVsCodeApi()` 获取 VS Code 桥接对象，调用 `PostMessage` 向主进程发送数据；
+- 双方通过监听消息事件，解析消息类型和数据完成逻辑响应。
+
+修改之前写的 open.webview 指令，实现 webview 与扩展主进程之间的通信
+
+:::code-group
+```typescript[extension.ts]
+export function activate(context: vscode.ExtensionContext) {
+  ...
+  // 注册打开页面指令
+  const openWebviewDisposable = vscode.commands.registerCommand(
+    "vscode-extension-demo.openWebview",
+    () => {
+      // 1.创建并显示一个新的 Webview 面板
+      const panel = vscode.window.createWebviewPanel(
+        "webviewDemo", // 面板标识
+        "Webview Demo", // 面板标题
+        vscode.ViewColumn.One, // 显示在编辑器的哪个列
+        {
+          enableScripts: true, // 允许执行JS（必须），否则无法执行 acquireVsCodeApi()
+          retainContextWhenHidden: true, // 隐藏时保留上下文
+          localResourceRoots: [
+            vscode.Uri.file(context.extensionPath + '/webview')
+          ], // 允许 webview 访问扩展目录下的资源
+        }
+      )
+
+      // 2. 主进程监听Webview发送的消息
+      panel.webview.onDidReceiveMessage(
+        (message) => {
+          switch (message.type) {
+            case 'getData':
+              // 响应Webview的「获取数据」请求
+              panel.webview.postMessage({
+                type: 'dataResponse',
+                data: {
+                  name: 'VS Code Webview',
+                  version: '1.0.0',
+                  time: new Date().toLocaleString()
+                }
+              });
+              break;
+            case 'saveData':
+              // 处理Webview提交的「保存数据」请求
+              console.log('Webview提交的数据：', message.payload);
+              // 可调用Node.js API写入文件/数据库
+              vscode.window.showInformationMessage('数据保存成功：' + JSON.stringify(message.payload));
+              break;
+          }
+        },
+        undefined,
+        context.subscriptions // 加入销毁队列，避免内存泄漏
+      );
+
+      // 3.设置 Webview 的 HTML 内容
+      panel.webview.html = getWebviewContent(panel.webview, context)
+    }
+  )
+
+  // 将命令添加到上下文：确保扩展销毁时释放资源
+  context.subscriptions.push(openWebviewDisposable)
+}
+
+// 获取 Webview 的 HTML 内容
+function getWebviewContent(webview: vscode.Webview, context: vscode.ExtensionContext): string {
+  // 将本地资源路径转换为 webview 可以访问的 URI
+  const scriptUri = webview.asWebviewUri(
+    vscode.Uri.file(context.extensionPath + '/webview/main.js')
+  )
+  console.log('scriptUri', scriptUri);
+  return `
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+      <meta charset="UTF-8">
+      <title>Webview交互示例</title>
+      <style>body { padding: 20px; font-size: 14px; }</style>
+    </head>
+    <body>
+      <h3>Webview与主进程交互</h3>
+      <button id="getBtn">获取主进程数据</button>
+      <button id="saveBtn">提交数据到主进程</button>
+      <div id="result" style="margin-top: 20px; color: #666;"></div>
+      <script src="${scriptUri}"></script>
+    </body>
+    </html>
+  `
+}
+```
+
+```javascript [main.js]
+// 获取 VS Code 桥接对象（全局唯一，仅能调用一次）
+const vscode = acquireVsCodeApi();
+
+// 1. Webview向主进程发送「获取数据」请求
+document.getElementById('getBtn').addEventListener('click', () => {
+  console.log('发送获取数据请求');
+  vscode.postMessage({
+    type: 'getData', // 消息类型，用于主进程区分逻辑
+    payload: {} // 可选：携带给主进程的参数
+  });
+});
+
+// 2. Webview向主进程发送「保存数据」请求
+document.getElementById('saveBtn').addEventListener('click', () => {
+  vscode.postMessage({
+    type: 'saveData',
+    payload: {
+      username: 'test',
+      content: 'Webview提交的测试数据'
+    }
+  });
+});
+
+// 3. 监听主进程发送的消息
+window.addEventListener('message', (event) => {
+  const message = event.data;
+  switch (message.type) {
+    case 'dataResponse':
+      // 渲染主进程返回的数据
+      document.getElementById('result').innerHTML = JSON.stringify(message.data, null, 2);
+      break;
+  }
+});
+```
+:::
+
+## 发布
+
+
+
+## 总结
+
+本文介绍了
+
