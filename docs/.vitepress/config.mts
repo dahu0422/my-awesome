@@ -17,7 +17,26 @@ export default defineConfig({
         link: "/electron",
         items: [
           { text: "process model", link: "/electron/process-model" },
-          { text: "vscode-extension", link: "/electron/vscode-extension" },
+          {
+            text: "vscode-extension",
+            items: [
+              {
+                text: "hello-world",
+                link: "/electron/vscode-extension/hello-world",
+              },
+              {
+                text: "custom-command",
+                link: "/electron/vscode-extension/custom-command",
+              },
+              {
+                text: "menu",
+              },
+              {
+                text: "open-webview",
+                link: "/electron/vscode-extension/open-webview",
+              },
+            ],
+          },
         ],
       },
       {
