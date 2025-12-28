@@ -29,11 +29,12 @@ export default defineConfig({
                 link: "/electron/vscode-extension/custom-command",
               },
               {
-                text: "menu",
-              },
-              {
                 text: "open-webview",
                 link: "/electron/vscode-extension/open-webview",
+              },
+              {
+                text: "tree-view",
+                link: "/electron/vscode-extension/tree-view",
               },
             ],
           },

@@ -182,6 +182,19 @@ export function activate(context: vscode.ExtensionContext) {
         context.subscriptions // 加入销毁队列，避免内存泄漏
       )
 
+      panel.onDidDispose(
+        () => {
+          // 这个回调函数会在面板被销毁时执行
+          this.panel = undefined // 清空引用，防止内存泄漏
+          console.log("Webview面板已关闭")
+
+          // 可以在这里执行其他清理操作
+          // 例如：保存用户数据、取消定时器、清理缓存等
+        },
+        undefined,
+        this.context.subscriptions
+      )
+
       // 3. 设置 Webview 的 HTML 内容
       panel.webview.html = getWebviewContent(panel.webview, context)
     }
@@ -208,8 +221,8 @@ function getWebviewContent(
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Webview交互示例</title>
       <style>
-        body { 
-          padding: 20px; 
+        body {
+          padding: 20px;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
         button {
@@ -285,6 +298,18 @@ Webview 需要加载外部 CSS、JavaScript、图片等资源时，需要：
 
 1. 配置 `localResourceRoots` 指定允许访问的目录
 2. 使用 `webview.asWebviewUri()` 将本地路径转换为 Webview 可访问的 URI
+
+### onDidDispose 事件说明
+
+触发时机：
+
+1. 用户点击面板标签页的关闭按钮(x);
+2. 用户使用快捷键关闭面板：Cmd+w/Ctrl+W
+3. 代码中手动调用 `panel.dispose`
+
+事件作用：`onDidDispose` 面板在被销毁时触发，用于清理资源、取消监听、保存状态...
+
+当面板销毁后，不能再使用 `this.panel` 对象，否则会报错。因此在 onDidDispose 回调中将 this.panel 设置为 undefined 是一个好的实践。
 
 ### acquireVsCodeApi() 说明
 
