@@ -13,34 +13,6 @@ export default defineConfig({
 
     sidebar: [
       {
-        text: "Electron",
-        link: "/electron",
-        items: [
-          { text: "process model", link: "/electron/process-model" },
-          {
-            text: "vscode-extension",
-            items: [
-              {
-                text: "hello-world",
-                link: "/electron/vscode-extension/hello-world",
-              },
-              {
-                text: "custom-command",
-                link: "/electron/vscode-extension/custom-command",
-              },
-              {
-                text: "open-webview",
-                link: "/electron/vscode-extension/open-webview",
-              },
-              {
-                text: "tree-view",
-                link: "/electron/vscode-extension/tree-view",
-              },
-            ],
-          },
-        ],
-      },
-      {
         text: "HTML",
         link: "/html",
         items: [{ text: "defer、async", link: "/html/defer-async" }],
@@ -62,11 +34,12 @@ export default defineConfig({
           { text: "for..in、for..of", link: "/js/for-in&of" },
           { text: "var、let、const", link: "/js/var-let-const" },
           { text: "scope", link: "/js/scope" },
-          { text: "shallow&deep-copy", link: "/js/shallow&deep-copy" },
           { text: "prototype", link: "/js/prototype" },
           { text: "new", link: "/js/new" },
-          { text: "extend", link: "js/extend" },
+          { text: "extend", link: "/js/extend" },
+          { text: "Class", link: "/js/class" },
           { text: "closure", link: "/js/closure" },
+          { text: "shallow&deep-copy", link: "/js/shallow&deep-copy" },
           {
             text: "functional-programming",
             link: "/js/functional-programming",
@@ -74,6 +47,21 @@ export default defineConfig({
           { text: "debounce、throttle", link: "/js/debounce-throttle" },
           { text: "promise", link: "/js/promise" },
           { text: "chained-promises", link: "/js/chained-promises" },
+        ],
+      },
+      {
+        text: "TypeScript",
+        link: "/ts/index",
+        items: [
+          { text: "basic-type", link: "/ts/basic-type" },
+          { text: "interface", link: "/ts/interface" },
+          // { text: "Array Type & Tuple Type", link: "/ts/array-tuple" },
+          // { text: "Literal Types & Enmus", link: "/ts/literal-types&enmus" },
+          // { text: "Function Type", link: "/ts/function-type" },
+          { text: "type alias 类型别名", link: "/ts/type-alias" },
+          { text: "generics 泛型", link: "/ts/generics" },
+          { text: "类型层级", link: "/ts/type-hierarchy" },
+          { text: "declare", link: "/ts/declare" },
         ],
       },
       {
@@ -140,6 +128,34 @@ export default defineConfig({
         ],
       },
       {
+        text: "Electron",
+        link: "/electron",
+        items: [
+          { text: "process model", link: "/electron/process-model" },
+          {
+            text: "vscode-extension",
+            items: [
+              {
+                text: "hello-world",
+                link: "/electron/vscode-extension/hello-world",
+              },
+              {
+                text: "custom-command",
+                link: "/electron/vscode-extension/custom-command",
+              },
+              {
+                text: "open-webview",
+                link: "/electron/vscode-extension/open-webview",
+              },
+              {
+                text: "tree-view",
+                link: "/electron/vscode-extension/tree-view",
+              },
+            ],
+          },
+        ],
+      },
+      {
         text: "Frontend Engineering",
         items: [
           { text: "git", link: "/engineering/git" },
@@ -179,21 +195,6 @@ export default defineConfig({
               { text: "Virtual List", link: "/engineering/virtual-list" },
             ],
           },
-        ],
-      },
-      {
-        text: "TypeScript",
-        link: "/ts/index",
-        items: [
-          { text: "基础类型", link: "/ts/basic-type" },
-          // { text: "Array Type & Tuple Type", link: "/ts/array-tuple" },
-          { text: "interface 接口", link: "/ts/interface" },
-          // { text: "Literal Types & Enmus", link: "/ts/literal-types&enmus" },
-          // { text: "Function Type", link: "/ts/function-type" },
-          { text: "type alias 类型别名", link: "/ts/type-alias" },
-          { text: "generics 泛型", link: "/ts/generics" },
-          { text: "类型层级", link: "/ts/type-hierarchy" },
-          { text: "declare", link: "/ts/declare" },
         ],
       },
       // {
