@@ -160,10 +160,7 @@ export default defineConfig({
         items: [
           { text: "git", link: "/engineering/git" },
           { text: "module", link: "/engineering/module" },
-          {
-            text: "npx vs direct commands",
-            link: "/engineering/npx-vs-direct-commands",
-          },
+          { text: "npx vs direct commands", link: "/engineering/npx-vs-direct-commands" },
           {
             text: "webpack",
             link: "/engineering/webpack",
@@ -219,6 +216,7 @@ export default defineConfig({
             link: "/network/cross-origin-requests",
           },
           { text: "cache-straregy", link: "/network/cache-straregy" },
+          { text: "gRPC、Protobuf", link: "/network/gRPC&Protobuf" }
         ],
       },
       {
