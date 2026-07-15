@@ -1,0 +1,9 @@
+## 生命周期
+
+Webview 面板归创建它的插件所有。必须保存好 `createWebviewPanel` 返回的 webview 对象。一旦插件丢失了这个对象的引用，就算网页面板依旧在VSCode界面正常显示，插件代码永远无法在此获取并控制这个 webview。
+
+当用户关闭 Webview 面板时，该 webview 实例就会被销毁。如果尝试调用已经销毁的 webview，代码就会抛出异常。
+
+上面示例代码使用 `setInterval` 其实存在一个严重问题：一旦用户关闭面板，`setInterval` 定时器依旧会之持续执行，定时器内部尝试修改 `panel.webview.html`，毫无疑问就会抛出异常。
+
+`onDidDispose` 事件会在 Webview 被销毁时触发。可以借助这个事件停止后续更新操作，并释放 Webview 相关资源。
