@@ -14,21 +14,44 @@ npm install -g yo generator-code
 yo --version && code --version
 ```
 
-生成第一个扩展项目 `vscode-extension-demo`
+生成第一个扩展项目 `helloworld`
 
 ```bash
 yo code
 
-What type of extension do you want to create? --- New Extension（TypeScript）
-what`s the name of your extension? --- vscode-extension-demo
-what`s the identifier of your extension? --- vscode-extension-demo
-what`s the description of your extension? --- vscode 插件学习
-Initialize a git repository? --- Y
-Which bundler to use? --- Webpack
-Which package manager to use? --- npm
+# ? Do you want to open the new folder with Visual Studio Code? Open with `code`#
+# What type of extension do you want to create? --- New Extension（TypeScript）
+# what`s the name of your extension? --- vscode-extension-demo
+# what`s the identifier of your extension? --- vscode-extension-demo
+# what`s the description of your extension? --- vscode 插件学习
+# Initialize a git repository? --- Y
+# Which bundler to use? --- Webpack
+# Which package manager to use? --- npm
 ```
 
-VS Code 扩展工程核心目录结构：
+
+## 运行 Hello World
+
+加载扩展并运行 `Hello World`
+
+1. 打开扩展项目根目录（确保 VS Code 工作区是扩展项根目录，而非子目录）
+2. 打开左侧「运行和调试」面板 -> 选择 「Run Extension」 -> 点击启动按钮（或者按 `F5`）
+3. 等待几秒后，会自动弹出「扩展开发宿主」窗口，标题栏会标注 Extension Development Host
+4. 扩展已加载到该窗口中，执行扩展命令 `Cmd+Shift+P` 打开命令面板，输入 `Hello World`，执行后弹出提示框，验证成功
+
+![helloworld-command](../images/helloworld-command.png)
+
+![helloworld-run](../images/helloworld-run.png)
+
+## Hello World 插件底层原理
+
+Hello World 插件主要做了 3 件事：
+
+- 注册 onCommand 激活事件：`onCommand:helloworld.helloworld`，当用于执行 Hello World 时，插件会被激活；
+- 使用 `contributes.commands` 贡献点，让 Hello World 命令出现在命令面板中，并将其绑定到命令 ID `helloworld.helloworld`；
+- 使用 VS Code API 的 `commands.registerCommand` 将一个函数绑定到已注册的命令 ID `helloworld.helloworld` 上；
+
+### VS Code 扩展工程核心目录结构
 
 ```plaintext
 vscode-extension-demo/
@@ -36,24 +59,20 @@ vscode-extension-demo/
 │   ├── launch.json    # 调试配置（启动/调试扩展）
 │   └── tasks.json     # 编译TS任务
 ├── src/
-│   └── extension.ts   # 扩展核心逻辑（入口文件）
-├── package.json       # 扩展配置清单（核心！声明贡献点/依赖/激活条件）
+│   └── extension.ts   # ❗️扩展主入口文件，编写命令的具体业务实现 
+├── package.json       # ❗️扩展配置清单，用来声明插件信息和注册指令
 ├── tsconfig.json      # TS配置
 └── README.md
 ```
 
-## 运行 Hello World
-
-打开 `src/extension.ts` 解读代码
+### 解读 `src/extension.ts`
 
 ```typescript
 // 模块 'vscode' 包含 VS Code 的扩展 API
 import * as vscode from "vscode"
 
-// 扩展激活入口，编辑器触发激活条件时执行
+// 扩展激活入口，首次被激活会自动执行这个函数
 export function activate(context: vscode.ExtensionContext) {
-  // 这行代码只会在扩展激活时执行一次
-  // 使用控制台输出诊断信息（`console.log`）和错误（`console.error`）
   console.log(
     'Congratulations, your extension "vscode-extension-demo" is now active!'
   )
@@ -77,36 +96,7 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {}
 ```
 
-打开扩展项目的 `.vscode/launch.json`（脚手架自动生成），核心配置如下（无需修改，确认存在即可）
-
-```json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Run Extension", // 调试名称
-      "type": "extensionHost", // 类型：扩展宿主（核心！）
-      "request": "launch",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}" // 关键：指定当前扩展目录
-      ],
-      "outFiles": ["${workspaceFolder}/out/**/*.js"], // TS编译后的JS文件路径
-      "preLaunchTask": "${defaultBuildTask}" // 启动前自动编译TS（避免加载未编译代码）
-    }
-  ]
-}
-```
-
-加载扩展并运行 `Hello World`
-
-1. 打开扩展项目根目录（确保 VS Code 工作区是扩展项根目录，而非子目录）
-2. 打开左侧「运行和调试」面板 -> 选择 「Run Extension」 -> 点击启动按钮（或者按 `F5`）
-3. 等待几秒后，会自动弹出「扩展开发宿主」窗口，标题栏会标注 Extension Development Host
-4. 扩展已加载到该窗口中，执行扩展命令 `Cmd+Shift+P` 打开命令面板，输入 `Hello World`，执行后弹出提示框，验证成功
-
-![helloworld-command](../images/helloworld-command.png)
-
-![helloworld-run](../images/helloworld-run.png)
+### 解读 `package.json`
 
 核心配置 `package.json` 解读，`package.json` 是扩展的 「身份证 + 功能清单」，核心字段：
 
@@ -140,3 +130,32 @@ export function deactivate() {}
   }
 }
 ```
+### 解读 `.vscode/launch.json`
+
+打开扩展项目的 `.vscode/launch.json`（脚手架自动生成），核心配置如下（无需修改，确认存在即可）
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Extension", // 调试名称
+      "type": "extensionHost", // 类型：扩展宿主（核心！）
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}" // 关键：指定当前扩展目录
+      ],
+      "outFiles": ["${workspaceFolder}/out/**/*.js"], // TS编译后的JS文件路径
+      "preLaunchTask": "${defaultBuildTask}" // 启动前自动编译TS（避免加载未编译代码）
+    }
+  ]
+}
+```
+
+::: tip 练一练
+1.尝试将 `Hello World from HelloWorld!` 提示语修改为 `Hello VS Code`
+
+2.尝试将 `Hello World` 命令修改为 `Hello VS Code`
+
+3.注册一个新的指令，并使用警告风格的提示语
+:::

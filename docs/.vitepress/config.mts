@@ -140,8 +140,8 @@ export default defineConfig({
                 link: "/electron/vscode-extension/hello-world",
               },
               {
-                text: "custom-command",
-                link: "/electron/vscode-extension/custom-command",
+                text: "command",
+                link: "/electron/vscode-extension/command",
               },
               {
                 text: "open-webview",
