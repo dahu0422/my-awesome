@@ -1,68 +1,179 @@
 # 开发 Webview 面板
 
-Webview 是 VS Code 扩展中用于嵌入自定义 HTML/CSS/JavaScript 页面的功能，允许开发者创建丰富的交互式界面。Webview 运行在独立的隔离环境中，与扩展主进程通过消息传递机制进行通信。
+webview API 允许扩展在 Visual Studio Code 内创建完全可自定义的视图。例如，内置的 Markdown 扩展使用网页视图来渲染 Markdown 预览。
 
-## 创建简单的 Webview
+把网页视图看作是扩展控制的 VS Code 内部的一个窗口。Web 视图几乎可以渲染任何 HTML 内容，并通过消息传递与扩展通信。
+
+Web 视图被用于多个 VS Code API：
+
+- 使用 `createWebviewPanel` 创建的 Webview 面板：这种情况，Webview 面板在 VS Code 中显示为独立的编辑器。适合用来展示自定义的 UI 界面；
+- 作为自定义编辑器（）的视图：
+- 在侧边栏（Sidebar）或底部面板（Panel）区域渲染的 Webview 视图中
+
+## 创建简单的 Webview：Cat Coding
+
+初始化工程，添加 `catCoding.start` 的指令。调用此命令，显示一个简单的网页视图：一只猫写代码的 GIF。
 
 :::code-group
 
 ```typescript [extension.ts]
-// 注册打开页面指令
-const openWebviewDisposable = vscode.commands.registerCommand(
-  "vscode-extension-demo.openWebview",
-  () => {
-    // 创建并显示一个新的 Webview 面板
-    const panel = vscode.window.createWebviewPanel(
-      "webviewDemo", // 面板标识（viewType）
-      "Webview Demo", // 面板标题
-      vscode.ViewColumn.One, // 显示在编辑器的哪个列
-      {
-        enableScripts: true, // 允许执行JS（必须），否则无法执行 acquireVsCodeApi()
-        retainContextWhenHidden: true, // 隐藏时保留上下文
-      }
-    )
+import * as vscode from 'vscode';
 
-    // 设置 Webview 的 HTML 内容
-    panel.webview.html = getWebviewContent()
-  }
-)
-
-// 将命令添加到上下文：确保扩展销毁时释放资源
-context.subscriptions.push(openWebviewDisposable)
-
-// 获取 Webview 的 HTML 内容
-function getWebviewContent() {
-  return `<!DOCTYPE html>
-    <html lang="en">
-      <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Webview Demo</title>
-      </head>
-      <body>
-          <h1>Hello from Webview!</h1>
-          <p>This is a simple webview example in VS Code extension.</p>
-      </body>
-    </html>`
+export function activate(context: vscode.ExtensionContext) {
+  context.subscriptions.push(
+    vscode.commands.registerCommand('catCoding.start', () => {
+      // Create and show a new webview
+      const panel = vscode.window.createWebviewPanel(
+        'catCoding', // Identifies the type of the webview. Used internally
+        'Cat Coding', // Title of the panel displayed to the user
+        vscode.ViewColumn.One, // Editor column to show the new webview panel in.
+        {} // Webview options. More on these later.
+      );
+    })
+  );
 }
 ```
 
 ```json [package.json]
 {
+  "name": "cat-coding",
+  "description": "Cat Coding",
+  "version": "0.0.1",
+  "publisher": "bierner",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "activationEvents": [],
+  "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "vscode-extension-demo.openWebview",
-        "title": "Open Webview"
+        "command": "catCoding.start",
+        "title": "Start new cat coding session",
+        "category": "Cat Coding"
       }
     ]
+  },
+  "scripts": {
+    "vscode:prepublish": "tsc -p ./",
+    "compile": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install"
+  },
+  "dependencies": {
+    "vscode": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^9.4.6",
+    "typescript": "^2.8.3"
   }
 }
+
 ```
 
 :::
 
+打开了一个新的网页视图面板，标题正确，但没有任何内容。
 ![openwebview-run](../images/openwebview-run.png)
+
+将猫添加到新面板，使用以下方法设置网页视图的 HTML 内容
+
+```typescript
+import * as vscode from 'vscode';
+
+export function activate(context: vscode.ExtensionContext) {
+  context.subscriptions.push(
+    vscode.commands.registerCommand('catCoding.start', () => {
+      // Create and show panel
+      const panel = vscode.window.createWebviewPanel(
+        'catCoding',
+        'Cat Coding',
+        vscode.ViewColumn.One,
+        {}
+      );
+
+      // And set its HTML content
+      panel.webview.html = getWebviewContent();
+    })
+  );
+}
+
+function getWebviewContent() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Coding</title>
+</head>
+<body>
+    <img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" />
+</body>
+</html>`;
+}
+
+```
+
+效果如下：
+
+## 更新网页内容
+
+`webview.html` 可以在网页视图创建后更新其内容，让这个猫编码更具动态性，引入猫轮换；
+
+```typescript
+import * as vscode from 'vscode';
+
+const cats = {
+  'Coding Cat': 'https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif',
+  'Compiling Cat': 'https://media.giphy.com/media/mlvseq9yvZhba/giphy.gif'
+};
+
+export function activate(context: vscode.ExtensionContext) {
+  context.subscriptions.push(
+    vscode.commands.registerCommand('catCoding.start', () => {
+      const panel = vscode.window.createWebviewPanel(
+        'catCoding',
+        'Cat Coding',
+        vscode.ViewColumn.One,
+        {}
+      );
+
+      let iteration = 0;
+      const updateWebview = () => {
+        const cat = iteration++ % 2 ? 'Compiling Cat' : 'Coding Cat';
+        panel.title = cat;
+        panel.webview.html = getWebviewContent(cat);
+      };
+
+      // Set initial content
+      updateWebview();
+
+      // And schedule updates to the content every second
+      setInterval(updateWebview, 1000);
+    })
+  );
+}
+
+function getWebviewContent(cat: keyof typeof cats) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Coding</title>
+</head>
+<body>
+    <img src="${cats[cat]}" width="300" />
+</body>
+</html>`;
+}
+
+```
+
+设置会替换整个网页内容，类似于重新加载 iframe。上述示例还用于更改编辑器中文档的标题。设置标题不会导致网页视图重新加载。
+
+## 生命周期
+
+Webview
 
 ## createWebviewPanel API 详解
 
