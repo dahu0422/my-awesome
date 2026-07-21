@@ -73,7 +73,8 @@ export function activate(context: vscode.ExtensionContext) {
 :::
 
 打开了一个新的网页视图面板，标题正确，但没有任何内容。
-![openwebview-run](../images/openwebview-run.png)
+
+TODO:补充截图
 
 将猫添加到新面板，使用以下方法设置网页视图的 HTML 内容
 
@@ -113,7 +114,7 @@ function getWebviewContent() {
 
 ```
 
-效果如下：
+TODO 补充截图，效果如下：
 
 ## 更新网页内容
 
@@ -173,7 +174,158 @@ function getWebviewContent(cat: keyof typeof cats) {
 
 ## 生命周期
 
-Webview
+Webview 面板归创建它的扩展程序所有。扩展程序必须保存调用 `createWebviewPanel` 后返回的 Webview 对象。一旦扩展丢失该对象引用，就无法访问这个 Webview，即使该面板仍会在 VS Code 界面中正常显示。
+
+和文本编译器一样，用户随时都能关闭 Webview 面板。当用户关闭面板时，对应的 Webview 实力会被销毁。若尝试操作已销毁的 Webview，程序会抛出异常。
+
+回看上面这段代码使用 `setInterval` 的示例存在一处严重漏洞：如果用户关闭面板，定时器 `setInterval` 仍会持续执行，代码会尝试更新 `panel.webview.html`，最终必然触发异常。
+
+`onDidDispose` 事件会在 Webview 被销毁时触发。借助该事件停止后续更新操作，并清理 Webview 占用的资源。
+
+```typescript
+import * as vscode from 'vscode';
+
+const cats = {
+  'Coding Cat': 'https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif',
+  'Compiling Cat': 'https://media.giphy.com/media/mlvseq9yvZhba/giphy.gif'
+};
+
+export function activate(context: vscode.ExtensionContext) {
+  context.subscriptions.push(
+    vscode.commands.registerCommand('catCoding.start', () => {
+      const panel = vscode.window.createWebviewPanel(
+        'catCoding',
+        'Cat Coding',
+        vscode.ViewColumn.One,
+        {}
+      );
+
+      let iteration = 0;
+      const updateWebview = () => {
+        const cat = iteration++ % 2 ? 'Compiling Cat' : 'Coding Cat';
+        panel.title = cat;
+        panel.webview.html = getWebviewContent(cat);
+      };
+
+      updateWebview();
+      const interval = setInterval(updateWebview, 1000);
+
+      panel.onDidDispose(
+        () => {
+          // When the panel is closed, cancel any future updates to the webview content
+          clearInterval(interval);
+        },
+        null,
+        context.subscriptions
+      );
+    })
+  );
+}
+
+```
+
+## 可见性与移动
+
+当 Webview 面板被切换至后台标签页，面板会进入隐藏状态，但不会被销毁。当该面板重新切换回前台时，VS Code 会自动通过 webview.html 恢复 Webview 的页面内容。
+
+`visible` 属性用于判断当前 Webview 面板是否处于可见状态。
+
+扩展程序可通过调用 `reveal()` 方法，用代码将 Webview 面板切换至前台。该方法支持传入可选参数，用于指定面板要展示的目标编辑器分栏。
+
+一个 Webview 面板同一时间只能显示在单个编辑器分栏内。调用 reveal()，或是手动拖拽 Webview 面板到其他编辑器分栏，都会将该面板迁移至新分栏。
+
+改造扩展程序，使其同一时间只保留一个 Webview 面板。若面板当前处于后台，执行 catCoding.start 命令就会将它切换到前台显示。
+
+```typescript
+export function activate(context: vscode.ExtensionContext) {
+  // Track the current panel with a webview
+  let currentPanel: vscode.WebviewPanel | undefined = undefined;
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('catCoding.start', () => {
+      const columnToShowIn = vscode.window.activeTextEditor
+        ? vscode.window.activeTextEditor.viewColumn
+        : undefined;
+
+      if (currentPanel) {
+        // If we already have a panel, show it in the target column
+        currentPanel.reveal(columnToShowIn);
+      } else {
+        // Otherwise, create a new panel
+        currentPanel = vscode.window.createWebviewPanel(
+          'catCoding',
+          'Cat Coding',
+          columnToShowIn || vscode.ViewColumn.One,
+          {}
+        );
+        currentPanel.webview.html = getWebviewContent('Coding Cat');
+
+        // Reset when the current panel is closed
+        currentPanel.onDidDispose(
+          () => {
+            currentPanel = undefined;
+          },
+          null,
+          context.subscriptions
+        );
+      }
+    })
+  );
+}
+
+```
+
+每当 Webview 的可见状态发生变化，或是 Webview 被移动到新的编辑器分栏时，`onDidChangeViewState` 事件就会触发。我们的扩展程序可以利用该事件，根据 Webview 当前所在的分栏切换展示不同猫咪样式。
+
+```typescript
+const cats = {
+  'Coding Cat': 'https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif',
+  'Compiling Cat': 'https://media.giphy.com/media/mlvseq9yvZhba/giphy.gif',
+  'Testing Cat': 'https://media.giphy.com/media/3oriO0OEd9QIDdllqo/giphy.gif'
+};
+
+export function activate(context: vscode.ExtensionContext) {
+  context.subscriptions.push(
+    vscode.commands.registerCommand('catCoding.start', () => {
+      const panel = vscode.window.createWebviewPanel(
+        'catCoding',
+        'Cat Coding',
+        vscode.ViewColumn.One,
+        {}
+      );
+      panel.webview.html = getWebviewContent('Coding Cat');
+
+      // Update contents based on view state changes
+      panel.onDidChangeViewState(
+        e => {
+          const panel = e.webviewPanel;
+          switch (panel.viewColumn) {
+            case vscode.ViewColumn.One:
+              updateWebviewForCat(panel, 'Coding Cat');
+              return;
+
+            case vscode.ViewColumn.Two:
+              updateWebviewForCat(panel, 'Compiling Cat');
+              return;
+
+            case vscode.ViewColumn.Three:
+              updateWebviewForCat(panel, 'Testing Cat');
+              return;
+          }
+        },
+        null,
+        context.subscriptions
+      );
+    })
+  );
+}
+
+function updateWebviewForCat(panel: vscode.WebviewPanel, catName: keyof typeof cats) {
+  panel.title = catName;
+  panel.webview.html = getWebviewContent(catName);
+}
+
+```
 
 ## createWebviewPanel API 详解
 
